@@ -16,7 +16,7 @@ def index(request):
     else:
         advertisements = Advertisement.objects.all()
     context={'advertisements':advertisements, 'title' : title }
-    return render(request,'app_lesson_4/index.html',context)
+    return render(request,'app_advertisement/index.html',context)
 
 
 def top_sellers(request):
@@ -37,8 +37,8 @@ def advertisement_post(request):
 
     else:
         form = AdvertisementForm()
-    context = render(request, 'advertisement-post.html',context)
-    return render(request,'app_advertisement/advertisement-post.html')
+    context = {'form': form}
+    return render(request, 'app_advertisement/advertisement-post.html', context)
 
 def advertisement_detail(request, pk):
     advertisement = Advertisement.objects.get(id=pk)

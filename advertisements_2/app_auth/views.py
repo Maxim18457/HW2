@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse_lazy, reverse
-from app_lesson_4.forms import AdvertisementForm
+from .forms import ExtendedUserCreationForm
 
 
 @login_required(login_url=reverse_lazy('login'))
@@ -33,14 +33,14 @@ def logout_view(request):
 
 def register_view(request):
     if request.method == "POST":
-        form = AdvertisementForm(request.POST)
+        form = ExtendedUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             user = authenticate(username=user.username, password=request.POST['password1'])
             login(request, user=user)
             return redirect(reverse('profile'))
     else:
-        form = AdvertisementForm()
+        form = ExtendedUserCreationForm()
 
     context = {
         'form': form
