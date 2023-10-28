@@ -1,18 +1,65 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse, reverse_lazy
 from .models import Advertisement
 from .forms import AdvertisementForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from django.db.models import Count
+
+User = get_user_model()
 
 def index(request):
-    advertisements = Advertisement.objects.all()
-    context={'advertisement':advertisements}
-    return render(request,'index.html',context)
+    title = request.GET.get('query')
+    if title:
+        advertisements = Advertisement.objects.filter(title__icontains=title)
+    else:
+        advertisements = Advertisement.objects.all()
+    context={'advertisements':advertisements, 'title' : title }
+    return render(request,'app_lesson_4/index.html',context)
+
 
 def top_sellers(request):
-    return render(request, 'top-sellers.html')
+    users = User.objects.annotate(adv_count = Count('advertisement')).order_by('-adv_count')
+    context = {'users' : users}
+    return render(request, 'app_advertisement/top-sellers.html')
 
+@login_required(login_url = reverse_lazy('adv_post'))
 def advertisement_post(request):
-    form = AdvertisementForm()
+    if request.method == 'POST':
+        form = AdvertisementForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_advertisement = form.save(commit=False)
+            new_advertisement.user = request.user
+            new_advertisement.save()
+            url = reverse('main_page')
+            return redirect(url)
+
+    else:
+        form = AdvertisementForm()
     context = render(request, 'advertisement-post.html',context)
-    return render(request,'advertisement-post.html')
+    return render(request,'app_advertisement/advertisement-post.html')
+
+def advertisement_detail(request, pk):
+    advertisement = Advertisement.objects.get(id=pk)
+    context = {'advertisement' : advertisement}
+    return render(request, 'app_advertisement/advertisement.html', context)
+
+# def top_sellers(request):
+#     return render(request, 'app_lesson_4/top-sellers.html')
+
+# @login_required(login_url = reverse_lazy('adv_post'))
+# def advertisement_post(request):
+#     if request.method == "POST":
+#         form = AdvertisementForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             new_advertisement = form.save(commit=False)
+#             new_advertisement.user = request.user
+#             new_advertisement.save()
+#             url = reverse('main_page')
+#             return redirect(url)
+#     else:
+#         form = AdvertisementForm()
+#     context = render(request, 'advertisement-post.html',context)
+#     return render(request,'advertisement-post.html')
 
